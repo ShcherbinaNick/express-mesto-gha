@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const { handleError, NOT_FOUND_ERROR, BAD_REQUEST_ERROR } = require('../errors/errors');
+const { handleError, NOT_FOUND_ERROR } = require('../errors/errors');
 
 module.exports.getUsers = async (req, res) => {
   try {
@@ -19,7 +19,7 @@ module.exports.getUserById = async (req, res) => {
     if (user) {
       res.status(200).send(user);
     } else {
-      res.status(BAD_REQUEST_ERROR).send({ message: 'Пользователь не найден' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Пользователь не найден' });
     }
   } catch (err) {
     handleError(err, res);
