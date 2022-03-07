@@ -1,15 +1,14 @@
 const Card = require('../models/card');
+const { handleError, NOT_FOUND_ERROR } = require('../errors/errors');
 
 module.exports.getCards = async (req, res) => {
   try {
     const cards = await Card.find({});
     if (cards) {
       res.status(200).send(cards);
-    } else {
-      res.status(404).send('Нет карточек');
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -21,10 +20,10 @@ module.exports.createCard = async (req, res) => {
     if (card) {
       res.status(201).send(card);
     } else {
-      res.status(404).send({ message: 'Не получилось создать карточку' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Не получилось создать карточку' });
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -35,10 +34,10 @@ module.exports.deleteCard = async (req, res) => {
     if (card) {
       res.send({ message: 'Карточка удалена' });
     } else {
-      res.status(404).send('Не получилось удалить карточку');
+      res.status(NOT_FOUND_ERROR).send('Не получилось удалить карточку');
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -53,10 +52,10 @@ module.exports.setCardLike = async (req, res) => {
     if (card) {
       res.send(card);
     } else {
-      res.status(404).send({ message: 'Нет карточки для лайка' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Нет карточки для лайка' });
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -71,9 +70,9 @@ module.exports.deleteCardLike = async (req, res) => {
     if (card) {
       res.send(card);
     } else {
-      res.status(404).send({ message: 'Нет карточки для дизлайка' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Нет карточки для дизлайка' });
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };

@@ -1,15 +1,14 @@
 const User = require('../models/user');
+const { handleError, NOT_FOUND_ERROR } = require('../errors/errors');
 
 module.exports.getUsers = async (req, res) => {
   try {
     const users = await User.find({});
     if (users) {
       res.status(200).send(users);
-    } else {
-      res.status(404).send('Нет пользователей');
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -20,10 +19,10 @@ module.exports.getUserById = async (req, res) => {
     if (user) {
       res.status(200).send(user);
     } else {
-      res.status(400).send({ message: 'Пользователь не найден' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Пользователь не найден' });
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -33,11 +32,9 @@ module.exports.createUser = async (req, res) => {
     const user = await User.create({ name, about, avatar });
     if (user) {
       res.status(201).send(user);
-    } else {
-      res.status(400).send('Пользователь не создан. Проверьте правильность ввода данных');
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -47,15 +44,13 @@ module.exports.updateUser = async (req, res) => {
     const updatedUser = await User.findOneAndUpdate(
       req.user._id,
       { name, about },
-      { new: true, runValidators: true, upsert: true },
+      { new: true, runValidators: true },
     );
     if (updatedUser) {
       res.send(updatedUser);
-    } else {
-      res.status(400).send({ message: 'Не получилось обновить пользователя' });
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
 
@@ -66,14 +61,14 @@ module.exports.updateAvatar = async (req, res) => {
     const updatedUser = await User.findOneAndUpdate(
       userId,
       { avatar },
-      { new: true, runValidators: true, upsert: true },
+      { new: true, runValidators: true },
     );
     if (updatedUser) {
       res.send(updatedUser);
     } else {
-      res.status(400).send({ message: 'Не получилось обновить аватар' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Не получилось обновить аватар' });
     }
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    handleError(err, res);
   }
 };
