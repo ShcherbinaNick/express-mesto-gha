@@ -8,7 +8,7 @@ const handleError = (err, res) => {
       res.status(BAD_REQUEST_ERROR).send({ message: `${err.name}: ${err.message}` });
       break;
     case 'CastError':
-      res.status(NOT_FOUND_ERROR).send({ message: `${err.name}: ${err.message}` });
+      res.status(BAD_REQUEST_ERROR).send({ message: `${err.name}: ${err.message}` });
       break;
     default:
       res.status(DEFAULT_ERROR).send({ message: `${err.name} - проблема с сервером` });
