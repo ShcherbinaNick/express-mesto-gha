@@ -1,5 +1,5 @@
 const Card = require('../models/card');
-const { handleError, NOT_FOUND_ERROR, BAD_REQUEST_ERROR } = require('../errors/errors');
+const { handleError, NOT_FOUND_ERROR } = require('../errors/errors');
 
 module.exports.getCards = async (req, res) => {
   try {
@@ -34,7 +34,7 @@ module.exports.deleteCard = async (req, res) => {
     if (card) {
       res.send({ message: 'Карточка удалена' });
     } else {
-      res.status(BAD_REQUEST_ERROR).send('Не получилось удалить карточку');
+      res.status(NOT_FOUND_ERROR).send('Не получилось удалить карточку');
     }
   } catch (err) {
     handleError(err, res);
@@ -52,7 +52,7 @@ module.exports.setCardLike = async (req, res) => {
     if (card) {
       res.send(card);
     } else {
-      res.status(BAD_REQUEST_ERROR).send({ message: 'Нет карточки для лайка' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Нет карточки для лайка' });
     }
   } catch (err) {
     handleError(err, res);
@@ -70,7 +70,7 @@ module.exports.deleteCardLike = async (req, res) => {
     if (card) {
       res.send(card);
     } else {
-      res.status(BAD_REQUEST_ERROR).send({ message: 'Нет карточки для дизлайка' });
+      res.status(NOT_FOUND_ERROR).send({ message: 'Нет карточки для дизлайка' });
     }
   } catch (err) {
     handleError(err, res);
