@@ -29,13 +29,24 @@ module.exports.createCard = async (req, res) => {
 
 module.exports.deleteCard = async (req, res) => {
   try {
+    const userId = req.user._id;
     const { cardId } = req.params;
-    const card = await Card.findByIdAndRemove(cardId);
-    if (card) {
-      res.send({ message: 'Карточка удалена' });
-    } else {
-      res.status(NOT_FOUND_ERROR).send('Не получилось удалить карточку');
+
+    const card = await Card.findById(cardId);
+    if (!card) {
+      throw new Error({ message: 'Карточки с таким id не найдено' });
     }
+
+    const cardOwner = card.owner.valueOf();
+    if (cardOwner !== userId) {
+      throw new Error('Удалять можно только свои карточки');
+    }
+
+    const removeCard = await Card.findByIdAndRemove(cardId);
+    if (!removeCard) {
+      throw new Error({ message: 'Неверный id карточки' });
+    }
+    res.send({ message: 'Карточка удалена' });
   } catch (err) {
     handleError(err, res);
   }

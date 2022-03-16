@@ -1,6 +1,7 @@
 const BAD_REQUEST_ERROR = 400;
 const NOT_FOUND_ERROR = 404;
 const DEFAULT_ERROR = 500;
+const AUTHORIZATION_ERROR = 401;
 
 const handleError = (err, res) => {
   switch (err.name) {
@@ -17,5 +18,5 @@ const handleError = (err, res) => {
 };
 
 module.exports = {
-  handleError, BAD_REQUEST_ERROR, NOT_FOUND_ERROR, DEFAULT_ERROR,
+  handleError, BAD_REQUEST_ERROR, NOT_FOUND_ERROR, DEFAULT_ERROR, AUTHORIZATION_ERROR,
 };
