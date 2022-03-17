@@ -1,65 +1,89 @@
-const Card = require('../models/card');
-const { handleError, NOT_FOUND_ERROR } = require('../errors/errors');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-module.exports.getCards = async (req, res) => {
+const Card = require('../models/card');
+
+module.exports.getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     if (cards) {
       res.status(200).send(cards);
     }
   } catch (err) {
-    handleError(err, res);
+    next(err);
   }
 };
 
-module.exports.createCard = async (req, res) => {
+module.exports.createCard = async (req, res, next) => {
   try {
     const { name, link } = req.body;
     const owner = req.user._id;
     const card = await Card.create({ name, link, owner });
     if (card) {
       res.status(201).send(card);
-    } else {
-      res.status(NOT_FOUND_ERROR).send({ message: 'Не получилось создать карточку' });
     }
   } catch (err) {
-    handleError(err, res);
+    if (err.name === 'ValidationError') {
+      next(new BadRequestError('Переданы невалидные данные'));
+    } else {
+      next(err);
+    }
   }
 };
 
-module.exports.deleteCard = async (req, res) => {
+module.exports.deleteCard = async (req, res, next) => {
   try {
+    const userId = req.user._id;
     const { cardId } = req.params;
-    const card = await Card.findByIdAndRemove(cardId);
-    if (card) {
-      res.send({ message: 'Карточка удалена' });
-    } else {
-      res.status(NOT_FOUND_ERROR).send('Не получилось удалить карточку');
+
+    const card = await Card.findById(cardId);
+    if (!card) {
+      throw new NotFoundError('Карточки с таким id не найдено');
     }
+
+    const cardOwner = card.owner.valueOf();
+    if (cardOwner !== userId) {
+      throw new ForbiddenError('Удалять можно только свои карточки');
+    }
+
+    const removeCard = await Card.findByIdAndRemove(cardId);
+    if (!removeCard) {
+      throw new NotFoundError('Неверный id карточки');
+    }
+    res.send({ message: 'Карточка удалена' });
   } catch (err) {
-    handleError(err, res);
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Неправильный id карточки'));
+    } else {
+      next(err);
+    }
   }
 };
 
-module.exports.setCardLike = async (req, res) => {
+module.exports.setCardLike = async (req, res, next) => {
   try {
     const { cardId } = req.params;
-    const card = await Card.findByIdAndUpdate(
+    const cardLike = await Card.findByIdAndUpdate(
       cardId,
       { $addToSet: { likes: req.user._id } },
       { new: true },
     );
-    if (card) {
-      res.send(card);
+    if (cardLike) {
+      res.send(cardLike);
     } else {
-      res.status(NOT_FOUND_ERROR).send({ message: 'Нет карточки для лайка' });
+      throw new NotFoundError('Нет карточки для лайка');
     }
   } catch (err) {
-    handleError(err, res);
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Неправильный id карточки'));
+    } else {
+      next(err);
+    }
   }
 };
 
-module.exports.deleteCardLike = async (req, res) => {
+module.exports.deleteCardLike = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
@@ -70,9 +94,13 @@ module.exports.deleteCardLike = async (req, res) => {
     if (card) {
       res.send(card);
     } else {
-      res.status(NOT_FOUND_ERROR).send({ message: 'Нет карточки для дизлайка' });
+      throw new NotFoundError('Нет карточки для дизлайка');
     }
   } catch (err) {
-    handleError(err, res);
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Неправильный id карточки'));
+    } else {
+      next(err);
+    }
   }
 };
