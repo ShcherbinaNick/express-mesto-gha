@@ -2,12 +2,15 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
-const { handleError, NOT_FOUND_ERROR } = require('../errors/errors');
+const UnAuthtorizedError = require('../errors/UnauthorizedError');
+const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
+const ConflictRequestError = require('../errors/ConflictRequestError');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 const SALT_ROUNDS = 10;
 
-module.exports.login = async (req, res) => {
+module.exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -27,49 +30,53 @@ module.exports.login = async (req, res) => {
       }).status(200).send({ message: 'Аутентификация пройдена' });
     }
   } catch (err) {
-    handleError(err, res);
+    next(new UnAuthtorizedError('Требуется авторизация'));
   }
 };
 
-module.exports.getUsers = async (req, res) => {
+module.exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
     if (users) {
       res.status(200).send(users);
     }
   } catch (err) {
-    handleError(err, res);
+    next(err);
   }
 };
 
-module.exports.getMe = async (req, res) => {
+module.exports.getMe = async (req, res, next) => {
   try {
     const { _id } = req.user;
     const currentUser = await User.findById(_id);
     if (!currentUser) {
-      throw new Error('Пользователя с таким id не существует');
+      throw new NotFoundError('Пользователя с таким id нет');
     }
     res.status(200).send(currentUser);
   } catch (err) {
-    handleError(err, res);
+    next(err);
   }
 };
 
-module.exports.getUserById = async (req, res) => {
+module.exports.getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId);
     if (user) {
       res.status(200).send(user);
     } else {
-      res.status(NOT_FOUND_ERROR).send({ message: 'Пользователь не найден' });
+      throw new NotFoundError('Пользователь не найден');
     }
   } catch (err) {
-    handleError(err, res);
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Переданы некорректные данные'));
+    } else {
+      next(err);
+    }
   }
 };
 
-module.exports.createUser = async (req, res) => {
+module.exports.createUser = async (req, res, next) => {
   try {
     const {
       name, about, avatar, email, password,
@@ -82,11 +89,16 @@ module.exports.createUser = async (req, res) => {
       res.status(201).send(user);
     }
   } catch (err) {
-    handleError(err, res);
+    if (err.code === 11000) {
+      next(new ConflictRequestError('Пользователь с такой почтой уже существует'));
+    } else if (err.name === 'ValidationError') {
+      next(new BadRequestError('Переданы невалидные данные'));
+    }
+    next(err);
   }
 };
 
-module.exports.updateUser = async (req, res) => {
+module.exports.updateUser = async (req, res, next) => {
   try {
     const { name, about } = req.body;
     const updatedUser = await User.findOneAndUpdate(
@@ -98,11 +110,15 @@ module.exports.updateUser = async (req, res) => {
       res.send(updatedUser);
     }
   } catch (err) {
-    handleError(err, res);
+    if (err.name === 'ValidationError') {
+      next(new BadRequestError('Переданы невалидные данные'));
+    } else {
+      next(err);
+    }
   }
 };
 
-module.exports.updateAvatar = async (req, res) => {
+module.exports.updateAvatar = async (req, res, next) => {
   try {
     const { avatar } = req.body;
     const { userId } = req.params;
@@ -113,10 +129,12 @@ module.exports.updateAvatar = async (req, res) => {
     );
     if (updatedUser) {
       res.send(updatedUser);
-    } else {
-      res.status(NOT_FOUND_ERROR).send({ message: 'Не получилось обновить аватар' });
     }
   } catch (err) {
-    handleError(err, res);
+    if (err.name === 'ValidationError') {
+      next(new BadRequestError('Переданы невалидные данные'));
+    } else {
+      next(err);
+    }
   }
 };

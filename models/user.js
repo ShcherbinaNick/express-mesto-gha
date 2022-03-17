@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs/dist/bcrypt');
 const validator = require('validator');
 const mongoose = require('mongoose');
+const UnAuthtorizedError = require('../errors/UnauthorizedError');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -45,11 +46,11 @@ const userSchema = new mongoose.Schema({
 userSchema.statics.findUserByCredentials = async function (email, password) {
   const user = await this.findOne({ email }).select('+password');
   if (!user) {
-    throw new Error('Неправильные почта или пароль');
+    throw new UnAuthtorizedError('Неправильные почта или пароль');
   }
   const isPassMatched = await bcrypt.compare(password, user.password);
   if (!isPassMatched) {
-    throw new Error('Статик метод модели: неправильные почта или пароль'); // !!! Не уверен, что это должно быть тут
+    throw new UnAuthtorizedError('Неправильные почта или пароль');
   }
   return user;
 };

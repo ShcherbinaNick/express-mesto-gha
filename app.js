@@ -1,9 +1,9 @@
 require('dotenv').config();
-
 const { errors } = require('celebrate');
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const mongoose = require('mongoose');
+const { handleError } = require('./middlewares/handleError');
 const { routes } = require('./routes');
 
 const app = express();
@@ -13,6 +13,7 @@ const { PORT = 3000 } = process.env;
 app.use(cookieParser());
 app.use(routes);
 app.use(errors());
+app.use(handleError);
 
 async function main() {
   await mongoose.connect('mongodb://localhost:27017/mestodb', {
