@@ -2,7 +2,7 @@ const { celebrate, Joi, CelebrateError } = require('celebrate');
 const validator = require('validator');
 
 const validateUrl = (value) => {
-  if (!validator.isURL(value)) {
+  if (!validator.isURL(value, { require_protocol: true })) {
     throw new CelebrateError('Передан невалидный URL');
   }
   return value;
@@ -27,7 +27,7 @@ module.exports.validateCreateUser = celebrate({
 
 module.exports.validateGetUserById = celebrate({
   params: Joi.object().keys({
-    id: Joi.string().length(24).hex().required(),
+    userId: Joi.string().length(24).hex().required(),
   }),
 });
 
