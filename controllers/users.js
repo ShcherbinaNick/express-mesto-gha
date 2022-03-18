@@ -86,7 +86,7 @@ module.exports.createUser = async (req, res, next) => {
       name, about, avatar, email, password: hashedPass,
     });
     if (user) {
-      res.status(201).send(user);
+      res.status(201).send({ message: `Спасибо за регистрацию, ${user.name}!` });
     }
   } catch (err) {
     if (err.code === 11000) {
