@@ -5,13 +5,18 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { handleError } = require('./middlewares/handleError');
 const { routes } = require('./routes');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const app = express();
 
 const { PORT = 3000 } = process.env;
 
 app.use(cookieParser());
+app.use(requestLogger);
+
 app.use(routes);
+
+app.use(errorLogger);
 app.use(errors());
 app.use(handleError);
 
