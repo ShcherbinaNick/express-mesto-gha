@@ -1,7 +1,6 @@
 # Проект Mesto фронтенд + бэкенд
 
 Разработка сервера для проекта Mesto, задействующая Express.js и MongoDB.
-Ссылка на репозиторий для автотестов: https://github.com/ShcherbinaNick/express-mesto-gha
 
 ## Upd: 14-я проектная работа
 
